@@ -1,30 +1,78 @@
-#include <ProTrinketKeyboard.h> 
+#include <ProTrinketKeyboard.h>  // include the Adafruit library
 
-void wait(int millisecs_to_wait) {
-  unsigned long timestamp = millis();
-  while (millis() < (timestamp + millisecs_to_wait))
-    TrinketKeyboard.poll();
-}
-
-void slowType(char* str) {
-  while(*str != '\0') {
-      TrinketKeyboard.typeChar(*str++);
-      wait(100);
-  }
-}
+#define DEBUG 1
+#define LED_PIN 13
 
 void setup()
 {
-  TrinketKeyboard.begin();
+  TrinketKeyboard.begin();  // initialize USB keyboard code
+  pinMode(LED_PIN, OUTPUT);
 }
 
 void loop()
 {
-  wait(random(6000, 60000)); 
-  switch(random(0,3)) {
-    case 0: slowType("help..."); break;
-    case 1: slowType("please..."); break;
-    case 2: slowType("i am stuck here..."); break;
-    case 3: slowType("kathy..?"); break;
+  unsigned long seconds = millis() / 1000;
+  
+  // calculate min and max time to wait, which decreases linearly over a week
+  int min_wait_time, max_wait_time;
+#if DEBUG
+  if (seconds <= 60) { // if less than a minute since epoch  
+    min_wait_time = int(-(09.0/60.0)*seconds + 10.0);
+    max_wait_time = int(-(18.0/60.0)*seconds + 20.0);
   }
+  else {
+    min_wait_time = 1; 
+    max_wait_time = 2;
+  }
+#else
+  if (seconds < 7*24*60*60) { // if less than a week since epoch  
+    min_wait_time = int(-(19.0/672.00)*seconds + 17280.0);
+    max_wait_time = int(-(95.0/2016.0)*seconds + 28800.0);
+  }
+  else {
+    min_wait_time = 3 * 60;
+    max_wait_time = 5 * 60;
+  }
+#endif
+
+  unsigned long secs_to_wait = random(min_wait_time, max_wait_time);
+  unsigned long timestamp = millis();
+  while (millis() < (timestamp + (secs_to_wait * 1000))) {
+    TrinketKeyboard.poll();
+  }
+
+  digitalWrite(LED_PIN, HIGH);
+  switch(random(0,6)) {
+    case 0: // press insert key
+    case 1:
+    case 2:
+      TrinketKeyboard.pressKey(0, KEYCODE_INSERT); 
+      TrinketKeyboard.pressKey(0, 0);
+      break;
+    case 3: // randomly press an arrow key
+      unsigned int keyToPress;
+      switch(random(0, 4)) {
+        case 0: keyToPress = KEYCODE_ARROW_UP; break;
+        case 1: keyToPress = KEYCODE_ARROW_DOWN; break;
+        case 2: keyToPress = KEYCODE_ARROW_LEFT; break;
+        case 3: keyToPress = KEYCODE_ARROW_RIGHT; break;
+        default: break;
+      }   
+      TrinketKeyboard.pressKey(0, keyToPress);
+      TrinketKeyboard.pressKey(0, 0);
+      break;
+    case 4: // press space
+      TrinketKeyboard.pressKey(0, KEYCODE_SPACE); 
+      TrinketKeyboard.pressKey(0, 0);
+      break;
+    case 5: // press ctrl+v
+      TrinketKeyboard.pressKey(KEYCODE_MOD_LEFT_CONTROL, KEYCODE_V);
+      TrinketKeyboard.pressKey(0, 0);
+      break;
+    default:
+      break;
+  }
+  digitalWrite(LED_PIN, LOW);
 }
+
+
