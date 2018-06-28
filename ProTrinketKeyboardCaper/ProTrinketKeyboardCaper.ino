@@ -1,11 +1,11 @@
-#include <ProTrinketKeyboard.h>  // include the Adafruit library
+#include <ProTrinketKeyboard.h>
 
 #define DEBUG 1
 #define LED_PIN 13
 
 void setup()
 {
-  TrinketKeyboard.begin();  // initialize USB keyboard code
+  TrinketKeyboard.begin();
   pinMode(LED_PIN, OUTPUT);
 }
 
@@ -37,11 +37,22 @@ void loop()
 
   unsigned long secs_to_wait = random(min_wait_time, max_wait_time);
   unsigned long timestamp = millis();
+  unsigned int count = 0;
+  unsigned heartbeat = false;
   while (millis() < (timestamp + (secs_to_wait * 1000))) {
     TrinketKeyboard.poll();
+
+    if (count % 100000 == 0) {
+        heartbeat = !heartbeat;
+        if (heartbeat)
+          digitalWrite(LED_PIN, HIGH);
+        else
+          digitalWrite(LED_PIN, LOW); 
+    }
+    count++;
   }
 
-  digitalWrite(LED_PIN, HIGH);
+  //digitalWrite(LED_PIN, HIGH);
   switch(random(0,6)) {
     case 0: // press insert key
     case 1:
@@ -72,7 +83,7 @@ void loop()
     default:
       break;
   }
-  digitalWrite(LED_PIN, LOW);
+  //heartbeatheartbeat heartbeatte(LED_PIN, LOW);
 }
 
 
