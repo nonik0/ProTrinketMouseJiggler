@@ -53,7 +53,11 @@ void loop()
   }
 
   //digitalWrite(LED_PIN, HIGH);
+ #if DEBUG
+  switch(5) {
+ #else
   switch(random(0,6)) {
+ #endif
     case 0: // press insert key
     case 1:
     case 2:
